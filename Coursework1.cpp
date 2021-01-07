@@ -7,6 +7,7 @@
 #include "Items.h"
 #include "Headers.h"
 #include "ICS0017DataSource.h"
+#include <regex>
 
 // Definitions
 // Task 1
@@ -19,9 +20,14 @@ void PrintCounter();
 void PrintError(const char* s);
 
 // Task 2
+void InsertItemAsFirst(HEADER_A* pHeaderA, ITEM2* item);
+void IncertItemInBetween(ITEM2* pItemPrev, ITEM2* pItemNext, ITEM2* pNewItem);
+bool StringsAreTheSame(char* a, char* b);
+bool VerifyFormattingForItemID(char* ItemID);
 HEADER_D* InsertItem(HEADER_D* d, int PosStructD = 0, int PosStructA = 0, int Pos2Item = 0, char* pNewItemID = NULL);
 
 // Implementations
+// Task 1
 void PrintError(const char* s)
 {
     std::cout << "[ERROR]" << s << std::endl;
@@ -125,10 +131,86 @@ void PrintDataStructure(HEADER_D* p)
 }
 
 // Task 2
-HEADER_D* InsertItem(HEADER_D* d, int PosStructD = 0, int PosStructA = 0, int Pos2Item = 0, char* pNewItemID = NULL)
+void InsertItemAsFirst(HEADER_A* pHeaderA, ITEM2* item)
 {
-    // TODO: Ensure ID does not exist
+    item->pNext = (ITEM2*)pHeaderA->pItems;
+    pHeaderA->pItems = item;
+}
+
+void IncertItemInBetween(ITEM2* pItemPrev, ITEM2* pItemNext, ITEM2* pNewItem)
+{
+    pItemPrev->pNext = pNewItem;
+    pNewItem->pNext = pItemNext;
+}
+
+bool StringsAreTheSame(char* a, char* b)
+{
+    return strcmp(a, b) == 0;
+}
+
+std::regex ItemIDFormat("^[A-Z][a-zA-Z-]* [a-zA-Z-]+$");
+bool VerifyFormattingForItemID(char* ItemID)
+{
+    return std::regex_match(ItemID, ItemIDFormat);
+}
+
+bool ItemWithIDExists(HEADER_D* d, char* pItemID)
+{
+    // First D header is already given in parameters
+
+    // Iterate D headers
+    while (d != NULL)
+    {
+        // First A header
+        HEADER_A* a = d->pHeaderA;
+
+        // Itertate A headers
+        while (a != NULL)
+        {
+            // First item
+            ITEM2* i = (ITEM2*)a->pItems;
+
+            // Iterate items
+            while (i != NULL)
+            {
+                // Match item's ID to ID we are looking for
+                if (StringsAreTheSame(i->pID, pItemID) == true)
+                    return true; // FOUND IT
+
+                // Switch to next item
+                i = i->pNext;
+            }
+
+            // Switch to next header A
+            a = a->pNext;
+        }
+
+        // Switch to next header D
+        d = d->pNext;
+    }
+
+    // No matches, means none of the items has this given ID
+    return false;
+}
+
+HEADER_D* InsertItem(HEADER_D* d, int PosStructD, int PosStructA, int Pos2Item, char* pNewItemID)
+{
+    if (ItemWithIDExists(d, pNewItemID) == true)
+    {
+        PrintError("Item with such ID already exists!");
+        return d;
+    }
+    if (VerifyFormattingForItemID(pNewItemID) != true)
+    {
+        PrintError("New Item ID has incorrect formatting");
+        return d;
+    }
+
     // TODO: Ensure id formatting
+
+    ITEM2* pNewItem = (ITEM2*)GetItem(2, pNewItemID);
+    std::cout << "Generated new item:" << std::endl;
+    PrintItem2Structure(pNewItem);
 
     for (int i = 0; i < PosStructD; i++)
     {
@@ -154,22 +236,28 @@ HEADER_D* InsertItem(HEADER_D* d, int PosStructD = 0, int PosStructA = 0, int Po
         }
     }
 
-    ITEM2* item = (ITEM2*)a->pItems;
-
-    for (int i = 0; i < Pos2Item; i++)
+    if (Pos2Item == 0)
     {
-        ITEM2* itemNext = a->pNext;
+        InsertItemAsFirst(a, pNewItem);
+        return d;
+    }
 
-        if (item == NULL)
+    ITEM2* pItemPrev = (ITEM2*)a->pItems;
+    ITEM2* pItemNext = pItemPrev->pNext;
+
+    for (int i = 0; i < Pos2Item - 1; i++)
+    {
+        if (pItemNext == NULL)
         {
             PrintError("Reached the limit of items");
             return NULL;
         }
 
-        a = item;
+        pItemPrev = pItemNext;
+        pItemNext = pItemPrev->pNext;
     }
 
-    //ITEM2* pNewItem = (ITEM2*)GetItem(2, pNewItemID);
+    IncertItemInBetween(pItemPrev, pItemNext, pNewItem);
 
     return d;
 }
@@ -177,11 +265,15 @@ HEADER_D* InsertItem(HEADER_D* d, int PosStructD = 0, int PosStructA = 0, int Po
 int main()
 {
     HEADER_D* p = GetStruct4(2, 20);
+    std::cout << "Initial data:" << std::endl;
     PrintDataStructure(p);
 
-    //HEADER_D* pNew = InsertItem(p, 5, 0, 0, NULL);
-    //PrintDataStructure(p);
+    char* pNewItemID = NULL; // (char*)"Wate-r Mania";
+    HEADER_D* pNew = InsertItem(p, 8, 1, 1, pNewItemID);
+    std::cout << "Incerted item:" << std::endl;
+    PrintDataStructure(p);
 
+    std::cout << "Finish" << std::endl;
     return 0;
 }
 
