@@ -8,30 +8,36 @@
 #include "Headers.h"
 #include "ICS0017DataSource.h"
 
+// Definitions
+// Task 1
 void PrintDataStructure(HEADER_D* p);
+void PrintHeaderDStructure(HEADER_D* p);
 void PrintHeaderAStructure(HEADER_A* p);
 void PrintItem2Structure(ITEM2* p);
 void PrintTimeStructure(TIME* p);
 void PrintCounter();
 void PrintError(const char* s);
 
+// Implementations
 void PrintError(const char* s)
 {
     std::cout << "[ERROR]" << s << std::endl;
 }
 
-unsigned int counter = 0;
+unsigned int counterDStructures = 0;
+unsigned int counterAStructures = 0;
 
 void PrintCounter()
 {
     // Prints:
-    //   1) 
-    //  23)
-    // 999)
-    // etc..
-    counter++;
-    std::cout << std::setfill(' ') << std::setw(3) << counter;
-    std::cout << ") ";
+    // [ 1|2] 
+    // [98|7]
+    // etc...
+    std::cout << "[";
+    std::cout << std::setfill(' ') << std::setw(2) << counterDStructures;
+    std::cout << "|";
+    std::cout << std::setfill(' ') << std::setw(1) << counterAStructures;
+    std::cout << "] ";
 }
 
 void PrintTimeStructure(TIME* p)
@@ -70,6 +76,7 @@ void PrintItem2Structure(ITEM2* p)
 void PrintHeaderAStructure(HEADER_A* p)
 {
     if (p == NULL) return PrintError("Can't print Header A structure because it is empty");
+    counterAStructures++;
 
     ITEM2* pItems = (ITEM2*)p->pItems;
     PrintItem2Structure(pItems);
@@ -80,26 +87,37 @@ void PrintHeaderAStructure(HEADER_A* p)
         PrintHeaderAStructure(pNext);
 }
 
-void PrintDataStructure(HEADER_D* p)
+void PrintHeaderDStructure(HEADER_D* p)
 {
     if (p == NULL) return PrintError("Can't print data structure because it is empty");
 
+    counterDStructures++;
+
     HEADER_A* pHeaderA = p->pHeaderA;
+    counterAStructures = 0;
     PrintHeaderAStructure(pHeaderA);
+    counterAStructures = 0;
 
     char cBegin = p->cBegin;
     headerD* pNext = p->pNext;
     headerD* pPrior = p->pPrior;
 
     if (pNext != NULL)
-        PrintDataStructure(pNext);
+        PrintHeaderDStructure(pNext);
 }
+
+void PrintDataStructure(HEADER_D* p)
+{
+    counterDStructures = 0;
+    PrintHeaderDStructure(p);
+    counterDStructures = 0;
+}
+
+
 
 int main()
 {
     HEADER_D* p = GetStruct4(2, 20);
-    // ITEM2* pNewItem = (ITEM2*)GetItem(2);
-
     PrintDataStructure(p);
 
     return 0;
