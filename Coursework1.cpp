@@ -195,18 +195,16 @@ bool ItemWithIDExists(HEADER_D* d, char* pItemID)
 
 HEADER_D* InsertItem(HEADER_D* d, int PosStructD, int PosStructA, int Pos2Item, char* pNewItemID)
 {
-    if (ItemWithIDExists(d, pNewItemID) == true)
+    if (pNewItemID != NULL && ItemWithIDExists(d, pNewItemID) == true)
     {
         PrintError("Item with such ID already exists!");
         return d;
     }
-    if (VerifyFormattingForItemID(pNewItemID) != true)
+    if (pNewItemID != NULL && VerifyFormattingForItemID(pNewItemID) != true)
     {
         PrintError("New Item ID has incorrect formatting");
         return d;
     }
-
-    // TODO: Ensure id formatting
 
     ITEM2* pNewItem = (ITEM2*)GetItem(2, pNewItemID);
     std::cout << "Generated new item:" << std::endl;
