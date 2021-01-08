@@ -26,6 +26,11 @@ bool StringsAreTheSame(char* a, char* b);
 bool VerifyFormattingForItemID(char* ItemID);
 HEADER_D* InsertItem(HEADER_D* d, int PosStructD = 0, int PosStructA = 0, int Pos2Item = 0, char* pNewItemID = NULL);
 
+// Task 3
+HEADER_D* RemoveItem(HEADER_D* p, char* pRemoveItemID);
+
+int main();
+
 // Implementations
 // Task 1
 void PrintError(const char* s)
@@ -260,16 +265,134 @@ HEADER_D* InsertItem(HEADER_D* d, int PosStructD, int PosStructA, int Pos2Item, 
     return d;
 }
 
+// Task 3
+HEADER_D* RemoveItem(HEADER_D* d, char* pRemoveItemID)
+{
+    if (pRemoveItemID == NULL)
+    {
+        PrintError("In order to remove an item ID must be specified");
+        return d;
+    }
+    if (ItemWithIDExists(d, pRemoveItemID) != true)
+    {
+        PrintError("Item with such ID DOES NOT exist!");
+        return d;
+    }
+
+    HEADER_D* originalD = d;
+
+    // First D header is already given in parameters
+    HEADER_D* dPrevious = NULL;
+
+    // Iterate D headers
+    while (d != NULL)
+    {
+        // First A header
+        HEADER_A* a = d->pHeaderA;
+        HEADER_A* aPrevious = NULL;
+
+        // Itertate A headers
+        while (a != NULL)
+        {
+            // First item
+            ITEM2* i = (ITEM2*)a->pItems;
+            ITEM2* iPrevious = NULL;
+
+            // Iterate items
+            while (i != NULL)
+            {
+                // Match item's ID to ID we are looking for
+                if (StringsAreTheSame(i->pID, pRemoveItemID) == true)
+                {
+                    // REMOVING ITEM
+                    ITEM2* iNext = i->pNext;
+                    delete i;
+
+                    if (iPrevious == NULL) // This is the first item in header A
+                    {
+                        if (iNext != NULL)
+                        {
+                            a->pItems = iNext;
+                        }
+                        else // No next and no previous
+                        {
+                            // REMOVING A HEADER
+                            HEADER_A* aNext = a->pNext;
+                            delete a;
+
+                            if (aPrevious == NULL) // This is the first A header
+                            {
+                                if (aNext == NULL) // No next and no previous
+                                {
+                                    // REMOVING D HEADER
+                                    HEADER_D* dNext = d->pNext;
+                                    delete d;
+
+                                    if (dPrevious == NULL) // This is the first d header
+                                    {
+                                        return dNext;
+                                    }
+                                    else
+                                    {
+                                        dPrevious->pNext = dNext;
+                                    }
+                                }
+                                else
+                                {
+                                    d->pHeaderA = aNext;
+                                }
+                            }
+                            else
+                            {
+                                aPrevious->pNext = aNext;
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        iPrevious->pNext = iNext;
+                    }
+
+                    // Item deleted, return
+                    return originalD;
+                }
+
+                // Switch to next item
+                iPrevious = i;
+                i = i->pNext;
+            }
+
+            // Switch to next header A
+            aPrevious = a;
+            a = a->pNext;
+        }
+
+        // Switch to next header D
+        dPrevious = d;
+        d = d->pNext;
+    }
+
+    PrintError("Failed to remove item, ID not found");
+
+    return d;
+}
+
 int main()
 {
     HEADER_D* p = GetStruct4(2, 20);
     std::cout << "Initial data:" << std::endl;
     PrintDataStructure(p);
 
-    char* pNewItemID = NULL; // (char*)"Wate-r Mania";
-    HEADER_D* pNew = InsertItem(p, 8, 1, 1, pNewItemID);
-    std::cout << "Incerted item:" << std::endl;
-    PrintDataStructure(p);
+    // char* pNewItemID = NULL; // (char*)"Wate-r Mania";
+    // HEADER_D* pNew = InsertItem(p, 8, 1, 1, pNewItemID);
+    // std::cout << "Incerted item:" << std::endl;
+    // PrintDataStructure(pNew);
+
+    char* pRemoveItemID = (char*)"Raw Umber";
+    HEADER_D* pRemoved = RemoveItem(p, pRemoveItemID);
+    std::cout << "Removed item:" << std::endl;
+    PrintDataStructure(pRemoved);
 
     std::cout << "Finish" << std::endl;
     return 0;
