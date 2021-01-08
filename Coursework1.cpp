@@ -380,6 +380,40 @@ HEADER_D* RemoveItem(HEADER_D* d, char* pRemoveItemID)
 
 int main()
 {
+    std::cout << "######### Creating new data #########" << std::endl;
+    int numberOfItems = 30;
+    HEADER_D* p = GetStruct4(2, numberOfItems);
+    std::cout << "Initial data with " << numberOfItems << " items: " << std::endl;
+    PrintDataStructure(p);
+
+    std::cout << "######### Inserting new data #########" << std::endl;
+    const char* newItemCodes[] = { "Z A", "Z Z", "Z K", "A Z", "A A", "A K", "G Z", "G A", "G K", "M A", "M Ba", "M Bb", "M Z" };
+    for (const char* newItemCode : newItemCodes)
+        InsertItem(p, 0, 0, 0, (char*)newItemCode);
+
+    std::cout << "######### Inserting invalid data #########" << std::endl;
+    InsertItem(p, 0, 0, 0, (char*)"M Ba");
+    InsertItem(p, 0, 0, 0, (char*)"Mba");
+
+    std::cout << "######### Data with new items  #########" << std::endl;
+    PrintDataStructure(p);
+
+    std::cout << "######### Removing data that we just inserted #########" << std::endl;
+    for (const char* newItemCode : newItemCodes)
+        RemoveItem(p, (char*)newItemCode);
+
+    std::cout << "######### Removing invalid data #########" << std::endl;
+    RemoveItem(p, (char*)"M Ba");
+    RemoveItem(p, (char*)"Mba");
+
+    std::cout << "######### FINAL DATA #########" << std::endl;
+    PrintDataStructure(p);
+
+    return 0;
+}
+
+int mainForDebug()
+{
     HEADER_D* p = GetStruct4(2, 20);
     std::cout << "Initial data:" << std::endl;
     PrintDataStructure(p);
